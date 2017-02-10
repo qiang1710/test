@@ -1,0 +1,68 @@
+#!/bin/sh
+echo "------------Start Nginx Install------------"
+
+yum install -y gcc-c++ pcre pcre-devel  zlib zlib-devel openssl openssl-devel
+
+if [ $? -ne 0 ];then
+echo " ------------YUM filed, install YUM epel------------"
+rpm -ivh http://repo.webtatic.com/yum/el7/x86_64/RPMS/epel-release-7-5.noarch.rpm
+yum install -y gcc-c++ pcre pcre-devel  zlib zlib-devel openssl openssl-devel
+else
+echo "------------install YUM RMP successful ------------"
+fi
+
+
+echo "------------Wget Nginx.tar from net------------ "
+mkdir /nginx -p 
+cd /nginx
+echo "Netx------>> "
+wget -c https://nginx.org/download/nginx-1.10.1.tar.gz
+echo "Netx------>> "
+tar zxvf  nginx-1.10.1.tar.gz
+cd  nginx-1.10.1
+echo "Netx------>> "
+./configure \
+--prefix=/usr/local/nginx \
+--conf-path=/usr/local/nginx/conf/nginx.conf \
+--pid-path=/usr/local/nginx/conf/nginx.pid \
+--lock-path=/var/lock/nginx.lock \
+--error-log-path=/usr/local/nginx/log/error.log \
+--http-log-path=/usr/local/nginx/log/access.log \
+--with-http_gzip_static_module \
+
+if [ $? -ne 0 ];then
+echo "configure failed ,please check it out!"
+exit 1
+fi
+echo "-------------------------Make Nginx,please wait-------------------------"
+
+make && make install
+if [ $? -ne 0 ];then
+echo "-------------------------make failed ,please check it out!-------------------------"
+exit 1
+fi
+echo "####################Nginx install successful######################"
+echo "------------START  NGINX  NOW ------------"
+/usr/local/nginx/sbin/nginx
+if [ $? -ne 0 ];then
+echo "Nginx Start failed ,please check it out!"
+exit 1
+fi
+
+echo "-------------------------set linux_run_start-------------------------"
+/bin/chmod 755  /etc/rc.d/rc.local
+if [ $? -ne 0 ];then
+echo "chmod rc.local configure failed ,please check it out!"
+exit 1
+fi
+
+sed -i '$a /usr/local/nginx/sbin/nginx' /etc/rc.local
+if [ $? -ne 0 ];then
+echo "rc.local configure failed ,please check it out!"
+exit 1
+fi
+
+echo "##############################END##################################"
+
+
+
